@@ -3,13 +3,12 @@
 #include <cstdlib>
 #include <ctime>
 #include <unordered_map>
-#include <algorithm>
 
 using namespace std;
 
 enum Direction { UP, DOWN, LEFT, RIGHT };
 
-// 正しいフルーツの成長順
+// フルーツの成長順
 unordered_map<int, string> fruitMap = {
     {2, "🍒"}, {4, "🍓"}, {8, "🍇"}, {16, "🍋"},
     {32, "🍊"}, {64, "🍑"}, {128, "🍍"}, {256, "🍎"},
@@ -20,27 +19,24 @@ class Board {
 private:
     vector<vector<int>> board;
     int size;
+    int score;
 
 public:
-    Board(int s) : size(s), board(s, vector<int>(s, 0)) {
+    Board(int s) : size(s), board(s, vector<int>(s, 0)), score(0) {
         addTile();
         addTile();
     }
 
     void printFruitOrder() {
         cout << "フルーツの成長順:\n";
-        vector<int> keys;
         for (const auto &pair : fruitMap) {
-            keys.push_back(pair.first);
-        }
-        sort(keys.begin(), keys.end());
-        for (int key : keys) {
-            cout << fruitMap[key] << " ";
+            cout << fruitMap[pair.first] << " ";
         }
         cout << endl << endl;
     }
 
     void printBoard() {
+        cout << "スコア: " << score << endl;
         for (const auto &row : board) {
             for (const auto &tile : row) {
                 if (tile == 0)
@@ -88,6 +84,10 @@ public:
         return true;
     }
 
+    int getScore() const {
+        return score;
+    }
+
 private:
     void addTile() {
         vector<pair<int, int>> emptyTiles;
@@ -116,6 +116,7 @@ private:
             for (int i = 0; i < size - 1; ++i) {
                 if (newCol[i] == newCol[i + 1] && newCol[i] != 0) {
                     newCol[i] *= 2;
+                    score += newCol[i];
                     newCol[i + 1] = 0;
                 }
             }
@@ -138,6 +139,7 @@ private:
             for (int i = size - 1; i > 0; --i) {
                 if (newCol[i] == newCol[i - 1] && newCol[i] != 0) {
                     newCol[i] *= 2;
+                    score += newCol[i];
                     newCol[i - 1] = 0;
                 }
             }
@@ -160,6 +162,7 @@ private:
             for (int i = 0; i < size - 1; ++i) {
                 if (newRow[i] == newRow[i + 1] && newRow[i] != 0) {
                     newRow[i] *= 2;
+                    score += newRow[i];
                     newRow[i + 1] = 0;
                 }
             }
@@ -182,6 +185,7 @@ private:
             for (int i = size - 1; i > 0; --i) {
                 if (newRow[i] == newRow[i - 1] && newRow[i] != 0) {
                     newRow[i] *= 2;
+                    score += newRow[i];
                     newRow[i - 1] = 0;
                 }
             }
@@ -197,22 +201,31 @@ int main() {
     srand(static_cast<unsigned int>(time(0)));
     Board game(4);
     game.printFruitOrder(); // フルーツの成長順を表示
+
     while (true) {
         game.printBoard();
         if (game.isGameOver()) {
             cout << "Game Over!" << endl;
             break;
         }
+
+        cout << "Enter move (w/a/s/d) or 'q' to quit: ";
         char move;
-        cout << "Enter move (w/a/s/d): ";
         cin >> move;
+
+        if (move == 'q') {
+            cout << "ゲームを終了します。最終スコア: " << game.getScore() << endl;
+            break;
+        }
+
         switch (move) {
-        case 'w': game.move(UP); break;
-        case 's': game.move(DOWN); break;
-        case 'a': game.move(LEFT); break;
-        case 'd': game.move(RIGHT); break;
-        default: cout << "Invalid move!" << endl; break;
+            case 'w': game.move(UP); break;
+            case 's': game.move(DOWN); break;
+            case 'a': game.move(LEFT); break;
+            case 'd': game.move(RIGHT); break;
+            default: cout << "Invalid move!" << endl; break;
         }
     }
+
     return 0;
 }
